@@ -1,0 +1,36 @@
+/**
+ * For more details on how to configure Wrangler, refer to:
+ * https://developers.cloudflare.com/workers/wrangler/configuration/
+ */
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "apt-advisor",
+	"main": "src/index.js",
+	"compatibility_date": "2026-09-16",
+	"assets": {
+		// 로그인 여부를 정적 자산에도 확인해야 하므로 Worker를 항상 먼저 실행한다 (home-main과 동일한 패턴).
+		"directory": "./public",
+		"binding": "ASSETS",
+		"run_worker_first": true
+	},
+	"observability": {
+		"enabled": true
+	},
+	"upload_source_maps": true,
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "apt-advisor-db",
+			// `npx wrangler d1 create apt-advisor-db` 실행 후 출력되는 database_id로 교체하세요.
+			"database_id": "REPLACE_WITH_D1_DATABASE_ID"
+		}
+	]
+	/**
+	 * 데이터 수집/분석/Claude 웹검색은 전부 apt-subscription-advisor의 GitHub Actions(Python)가
+	 * 담당한다. 이 Worker는 cron 없이 POST /api/sync로 받은 결과를 저장하고 보여주기만 한다.
+	 *
+	 * Environment Variables / Secrets
+	 * 평문으로 여기 적지 말고 `npx wrangler secret put SYNC_TOKEN`으로 등록하세요.
+	 * https://developers.cloudflare.com/workers/configuration/secrets/
+	 */
+}

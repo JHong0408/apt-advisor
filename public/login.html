@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ko">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>로그인 - 청약 알리미</title>
+		<link rel="stylesheet" href="/assets/site.css" />
+		<style>
+			body {
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				min-height: 100vh;
+			}
+		</style>
+	</head>
+	<body>
+		<form class="login-card" id="login-form">
+			<h1>청약 알리미 로그인</h1>
+			<label>
+				이메일
+				<input type="text" name="email" required autocomplete="username" />
+			</label>
+			<label>
+				비밀번호
+				<input type="password" name="password" required autocomplete="current-password" />
+			</label>
+			<button type="submit">로그인</button>
+			<p id="login-error"></p>
+		</form>
+
+		<script>
+			const form = document.getElementById("login-form");
+			const errorEl = document.getElementById("login-error");
+
+			form.addEventListener("submit", async (event) => {
+				event.preventDefault();
+				errorEl.textContent = "";
+
+				const data = new FormData(form);
+				const res = await fetch("/api/login", {
+					method: "POST",
+					headers: { "content-type": "application/json" },
+					body: JSON.stringify({ email: data.get("email"), password: data.get("password") }),
+				});
+
+				if (res.ok) {
+					location.href = "/";
+					return;
+				}
+
+				const body = await res.json().catch(() => ({}));
+				errorEl.textContent = body.error || "로그인에 실패했습니다.";
+			});
+		</script>
+	</body>
+</html>

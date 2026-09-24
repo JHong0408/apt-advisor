@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="ko">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>청약 알리미</title>
+		<link rel="stylesheet" href="/assets/site.css" />
+	</head>
+	<body>
+		<div class="container">
+			<h1>청약 공고 검색 <span id="new-count-badge"></span></h1>
+			<p class="subtitle">apt-subscription-advisor가 매일 아침 분석해서 보낸 공고입니다.</p>
+
+			<form class="search-bar" id="search-form">
+				<input type="text" id="q" name="q" placeholder="단지명/주소 검색" />
+				<select id="status" name="status">
+					<option value="open">접수중만</option>
+					<option value="all">마감 포함 전체</option>
+				</select>
+				<label class="new-only-toggle">
+					<input type="checkbox" id="new-only" />
+					신규만
+				</label>
+				<button type="submit">검색</button>
+			</form>
+
+			<div id="notices">
+				<p class="state-message">불러오는 중...</p>
+			</div>
+		</div>
+
+		<script>
+			// notice 데이터는 청약홈/실거래가 API, Claude 웹서치 등 외부 소스를 거쳐 온다 - innerHTML에
+			// 넣기 전에 반드시 이스케이프하고, URL은 http(s)만 허용해서 XSS를 막는다.
+			function escapeHtml(value) {
+				if (value === null || value === undefined) return "";
+				return String(value)
+					.replace(/&/g, "&amp;")
+					.replace(/</g, "&lt;")
+					.replace(/>/g, "&gt;")
+					.replace(/"/g, "&quot;")
+					.replace(/'/g, "&#39;");
+			}
+
+			function safeUrl(url) {
+				try {
+					const parsed = new URL(url, location.origin);
+					return parsed.protocol === "http:" || parsed.protocol === "https:" ? parsed.href : null;
+				} catch {
+					return null;
+				}
+			}
+
+			function formatWon(won) {
+				if (won === null || won === undefined) return "-";
+				return `${(won / 100000000).toFixed(2)}억`;
+			}
+
+			function formatManwon(manwon) {
+				if (manwon === null || manwon === undefined) return "-";
+				return formatWon(manwon * 10000);
+			}
+
+			function formatDate(d) {
+				if (!d) return "";
+				const digits = String(d).replace(/-/g, "");
+				if (digits.length !== 8) return d;
+				return `${digits.slice(0, 4)}.${digits.slice(4, 6)}.${digits.slice(6, 8)}`;
+			}
+
+			// margin/loan은 apt-subscription-advisor의 analyzer.py가 만든 JSON을 그대로 저장한
+			// 값이라 snake_case 필드명을 쓴다 (JS 쪽 camelCase가 아님에 주의).
+			function renderTypesTable(types) {
+				if (!types || types.length === 0) return "";
+				const rows = types
+					.map((t) => {
+						const margin = t.margin;
+						const loan = t.loan;
+						const marginCell =
+							margin && margin.margin_vs_avg !== null && margin.margin_vs_avg !== undefined
+								? `<span class="${margin.margin_vs_avg >= 0 ? "margin-positive" : "margin-negative"}">${formatWon(margin.margin_vs_avg)}</span>`
+								: "-";
+						return `<tr>
+							<td>${escapeHtml(t.house_ty ?? "-")}</td>
+							<td>${t.area_sqm ? escapeHtml(t.area_sqm) + "㎡" : "-"}</td>
+							<td>${formatManwon(t.price_manwon)}</td>
+							<td>${marginCell}</td>
+							<td>${loan ? formatWon(loan.estimated_required_cash) : "-"}</td>
+						</tr>`;
+					})
+					.join("");
+
+				return `<table class="type-table">
+					<thead>
+						<tr><th>주택형</th><th>면적</th><th>분양가</th><th>안전마진</th><th>필요현금</th></tr>
+					</thead>
+					<tbody>${rows}</tbody>
+				</table>`;
+			}
+
+			function renderReferences(refs) {
+				if (!refs || refs.length === 0) return "";
+				const links = refs
+					.map((r) => {
+						const url = safeUrl(r.url);
+						if (!url) return "";
+						return `<a href="${escapeHtml(url)}" target="_blank" rel="noopener">${escapeHtml(r.source ?? "참고")}: ${escapeHtml(r.title ?? r.url)}</a>`;
+					})
+					.join("");
+				return `<div class="references">${links}</div>`;
+			}
+
+			function renderNotice(n) {
+				const period =
+					n.reception_start_date || n.reception_end_date
+						? `${formatDate(n.reception_start_date)} ~ ${formatDate(n.reception_end_date)}`
+						: "";
+				const noticeUrl = safeUrl(n.notice_url);
+
+				return `<article class="notice-card">
+					<h2>${n.is_new ? '<span class="badge new">신규</span> ' : ""}${escapeHtml(n.house_name ?? "이름 미상")}</h2>
+					<p class="address">${escapeHtml(n.address ?? "")}</p>
+					<div class="notice-meta">
+						${n.region ? `<span class="badge region">${escapeHtml(n.region)}</span>` : ""}
+						${n.supply_type ? `<span class="badge">${escapeHtml(n.supply_type)}</span>` : ""}
+						${period ? `<span class="badge">${escapeHtml(period)}</span>` : ""}
+					</div>
+					${renderTypesTable(n.types)}
+					${n.recommendation ? `<div class="recommendation">${escapeHtml(n.recommendation)}</div>` : ""}
+					${renderReferences(n.references)}
+					<div class="card-footer">
+						<span>확인일 ${escapeHtml(formatDate(n.first_synced_at ? n.first_synced_at.slice(0, 10) : ""))}</span>
+						${noticeUrl ? `<a href="${escapeHtml(noticeUrl)}" target="_blank" rel="noopener">청약홈 공고 보기 →</a>` : ""}
+					</div>
+				</article>`;
+			}
+
+			async function load() {
+				const container = document.getElementById("notices");
+				container.innerHTML = '<p class="state-message">불러오는 중...</p>';
+
+				const params = new URLSearchParams();
+				const q = document.getElementById("q").value.trim();
+				const status = document.getElementById("status").value;
+				const onlyNew = document.getElementById("new-only").checked;
+				if (q) params.set("q", q);
+				if (status) params.set("status", status);
+				if (onlyNew) params.set("new", "1");
+
+				try {
+					const res = await fetch(`/api/notices?${params.toString()}`);
+					if (!res.ok) throw new Error(`HTTP ${res.status}`);
+					const body = await res.json();
+					const notices = body.notices ?? [];
+
+					const badge = document.getElementById("new-count-badge");
+					badge.textContent = body.new_count > 0 ? `신규 ${body.new_count}건` : "";
+
+					if (notices.length === 0) {
+						container.innerHTML = '<p class="state-message">조건에 맞는 공고가 없습니다.</p>';
+						return;
+					}
+
+					container.innerHTML = notices.map(renderNotice).join("");
+				} catch (err) {
+					container.innerHTML = `<p class="state-message">불러오기 실패: ${escapeHtml(err.message)}</p>`;
+				}
+			}
+
+			document.getElementById("search-form").addEventListener("submit", (event) => {
+				event.preventDefault();
+				load();
+			});
+			document.getElementById("new-only").addEventListener("change", load);
+
+			load();
+		</script>
+	</body>
+</html>
