@@ -21,8 +21,7 @@
 		{
 			"binding": "DB",
 			"database_name": "apt-advisor-db",
-			// `npx wrangler d1 create apt-advisor-db` 실행 후 출력되는 database_id로 교체하세요.
-			"database_id": "REPLACE_WITH_D1_DATABASE_ID"
+			"database_id": "e25b2472-c5d8-4635-a5b2-7e02891b40ed"
 		}
 	]
 	/**
