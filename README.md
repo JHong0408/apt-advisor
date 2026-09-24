@@ -30,7 +30,15 @@ SQLite)에 저장합니다.
   (같은 공고가 다시 sync되어도)되지 않습니다. 최근 2일 이내면 "신규" 배지가 붙습니다
   (`src/index.js`의 `NEW_WINDOW_SQL`).
 - **인증**: 이메일/비밀번호 로그인 + 세션 쿠키(`src/auth.js`, home-main과 동일한 PBKDF2 방식).
-  회원가입 화면은 없고, `scripts/create-user.mjs`로 본인 계정만 직접 만듭니다.
+  회원가입 화면은 없고, `scripts/create-user.mjs`(Node 필요) 또는 `scripts/create-user.ps1`
+  (Node 불필요, 아래 "방법 B" 참고)로 본인 계정만 직접 만듭니다.
+
+## 배포 방법
+
+로컬에 Node.js를 설치할 수 있으면 **방법 A**(wrangler CLI), 회사 PC 등이라 소프트웨어 설치가
+막혀있으면 **방법 B**(Cloudflare 대시보드 + GitHub 연동, Node 불필요)를 따라가세요.
+
+### 방법 A: wrangler CLI (Node.js 필요)
 
 ## 1. 배포 준비
 
@@ -98,3 +106,29 @@ npm run dev
 ```bash
 npx wrangler d1 execute apt-advisor-db --file=./schema.sql   # --remote 없이 = 로컬 DB
 ```
+
+### 방법 B: Cloudflare 대시보드 + GitHub 연동 (Node.js 불필요)
+
+빌드/배포가 Cloudflare 서버에서 일어나므로 로컬에 Node.js가 전혀 필요 없습니다. 이 저장소가
+먼저 GitHub에 push되어 있어야 합니다.
+
+1. **D1 생성**: [dash.cloudflare.com](https://dash.cloudflare.com) 로그인 → Workers & Pages →
+   D1 SQL Database → Create Database → 이름 `apt-advisor-db`로 생성. 생성된 DB 페이지에 나오는
+   Database ID를 복사해서 [wrangler.jsonc](wrangler.jsonc)의 `d1_databases[0].database_id`에
+   반영 후 git push.
+2. **스키마 적용**: 같은 D1 DB 페이지의 **Console** 탭에 [schema.sql](schema.sql) 내용을
+   그대로 붙여넣고 실행.
+3. **Worker 생성(Git 연동)**: Workers & Pages → Create → Workers → "Import a repository"(또는
+   "Connect to Git") → GitHub 계정 연동 승인 → `apt-advisor` 저장소 선택. 빌드 설정은
+   `wrangler.jsonc`를 자동 인식하므로 기본값 그대로 진행. 이후 GitHub에 push할 때마다 자동
+   재배포됩니다.
+4. **D1 바인딩 확인**: 배포 후 Worker의 Settings → Bindings에 `DB` → `apt-advisor-db`가 연결돼
+   있는지 확인 (wrangler.jsonc에 이미 선언돼 있어 자동으로 잡히는 게 보통이지만, 안 잡혀 있으면
+   여기서 수동으로 추가).
+5. **SYNC_TOKEN 등록**: Worker Settings → Variables and Secrets → Add → 이름 `SYNC_TOKEN`,
+   값은 아무 랜덤 문자열(예: 브라우저에서 `crypto.randomUUID()`를 두 번 이어붙인 값 등).
+6. **로그인 계정 생성**: PowerShell에서 `powershell -ExecutionPolicy Bypass -File
+   scripts\create-user.ps1` 실행 → 출력된 INSERT SQL을 1번의 D1 Console 탭에 붙여넣어 실행.
+7. **URL 확인 + apt-subscription-advisor 연결**: 배포된 Worker의 URL(`https://apt-advisor.
+   <subdomain>.workers.dev`)을 apt-subscription-advisor 저장소 Secrets의 `SITE_URL`에,
+   5번의 `SYNC_TOKEN` 값을 `SITE_SYNC_TOKEN`에 등록.
