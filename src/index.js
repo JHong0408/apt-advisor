@@ -81,6 +81,11 @@ async function handleSync(request, env) {
 
 	// first_synced_at은 여기서 명시적으로 갱신하지 않는다 - ON CONFLICT DO UPDATE의 SET
 	// 목록에 없으면 기존 행의 값이 그대로 유지된다(=최초 동기화 시각 보존, "신규" 배지의 기준).
+	//
+	// recommendation/references는 site_sync.py가 이미 Claude 처리를 마친 공고를 재동기화할
+	// 때 일부러 null로 보낸다(비용 절감을 위해 재호출을 건너뛰었다는 뜻) - 그 경우 COALESCE로
+	// 기존 값을 그대로 유지하고, null로 덮어써서 지우지 않는다.
+	const referencesJson = references != null ? JSON.stringify(references) : null;
 	await env.DB.prepare(
 		`INSERT INTO notices (notice_id, house_name, address, region, supply_type, reception_start_date, reception_end_date, notice_url, recommendation, references_json, first_synced_at, synced_at)
 		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
@@ -92,8 +97,8 @@ async function handleSync(request, env) {
 			reception_start_date = excluded.reception_start_date,
 			reception_end_date = excluded.reception_end_date,
 			notice_url = excluded.notice_url,
-			recommendation = excluded.recommendation,
-			references_json = excluded.references_json,
+			recommendation = COALESCE(excluded.recommendation, notices.recommendation),
+			references_json = COALESCE(excluded.references_json, notices.references_json),
 			synced_at = datetime('now')`,
 	)
 		.bind(
@@ -106,7 +111,7 @@ async function handleSync(request, env) {
 			receptionEndDate ?? null,
 			noticeUrl ?? null,
 			recommendation ?? null,
-			JSON.stringify(references ?? []),
+			referencesJson,
 		)
 		.run();
 
