@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS notices (
 	address TEXT,
 	region TEXT,
 	supply_type TEXT,
+	supply_category TEXT, -- 'general'(1·2순위/특공, 일반분양) | 'remainder'(무순위/임의공급) - 탭 구분용
 	reception_start_date TEXT,
 	reception_end_date TEXT,
 	notice_url TEXT,
@@ -35,6 +36,7 @@ CREATE TABLE IF NOT EXISTS notices (
 );
 
 CREATE INDEX IF NOT EXISTS idx_notices_first_synced_at ON notices (first_synced_at);
+CREATE INDEX IF NOT EXISTS idx_notices_supply_category ON notices (supply_category);
 
 -- 공고 하나 안의 주택형(면적/분양가)별 분석 결과. apt-subscription-advisor의
 -- main.py/analyzer.py가 계산한 값을 그대로 저장한다(margin_json/loan_json은

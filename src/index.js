@@ -82,6 +82,7 @@ async function handleSync(request, env) {
 		address,
 		region,
 		supply_type: supplyType,
+		supply_category: supplyCategory,
 		reception_start_date: receptionStartDate,
 		reception_end_date: receptionEndDate,
 		notice_url: noticeUrl,
@@ -114,13 +115,14 @@ async function handleSync(request, env) {
 	const referencesJson = JSON.stringify([...mergedByUrl.values()]);
 
 	await env.DB.prepare(
-		`INSERT INTO notices (notice_id, house_name, address, region, supply_type, reception_start_date, reception_end_date, notice_url, references_json, first_synced_at, synced_at)
-		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+		`INSERT INTO notices (notice_id, house_name, address, region, supply_type, supply_category, reception_start_date, reception_end_date, notice_url, references_json, first_synced_at, synced_at)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
 		 ON CONFLICT(notice_id) DO UPDATE SET
 			house_name = excluded.house_name,
 			address = excluded.address,
 			region = excluded.region,
 			supply_type = excluded.supply_type,
+			supply_category = excluded.supply_category,
 			reception_start_date = excluded.reception_start_date,
 			reception_end_date = excluded.reception_end_date,
 			notice_url = excluded.notice_url,
@@ -133,6 +135,7 @@ async function handleSync(request, env) {
 			address ?? null,
 			region ?? null,
 			supplyType ?? null,
+			supplyCategory ?? null,
 			receptionStartDate ?? null,
 			receptionEndDate ?? null,
 			noticeUrl ?? null,
@@ -174,12 +177,13 @@ const NEW_WINDOW_SQL = "datetime('now', '-2 days')";
 async function handleGetNotices(url, env) {
 	const onlyNew = url.searchParams.get("new") === "1";
 	const q = url.searchParams.get("q")?.trim() || "";
+	const category = url.searchParams.get("category") || "remainder"; // "remainder" | "general"
 	const limit = Math.min(Number(url.searchParams.get("limit")) || 100, 300);
 
 	// 마감된 공고는 deleteExpiredNotices()가 sync 때마다 D1에서 지우므로 원래 남아있으면
 	// 안 되지만, 혹시 아직 정리 전(청소 주기 사이)이라도 화면엔 노출되지 않도록 항상 걸러둔다.
-	const conds = ["(reception_end_date IS NULL OR reception_end_date >= ?)"];
-	const binds = [new Date().toISOString().slice(0, 10)];
+	const conds = ["(reception_end_date IS NULL OR reception_end_date >= ?)", "supply_category = ?"];
+	const binds = [new Date().toISOString().slice(0, 10), category];
 
 	if (onlyNew) {
 		conds.push(`first_synced_at >= ${NEW_WINDOW_SQL}`);
@@ -210,6 +214,7 @@ async function handleGetNotices(url, env) {
 			address: row.address,
 			region: row.region,
 			supply_type: row.supply_type,
+			supply_category: row.supply_category,
 			reception_start_date: row.reception_start_date,
 			reception_end_date: row.reception_end_date,
 			notice_url: row.notice_url,
@@ -226,7 +231,11 @@ async function handleGetNotices(url, env) {
 		});
 	}
 
-	const newCountRow = await env.DB.prepare(`SELECT COUNT(*) AS c FROM notices WHERE first_synced_at >= ${NEW_WINDOW_SQL}`).first();
+	const newCountRow = await env.DB.prepare(
+		`SELECT COUNT(*) AS c FROM notices WHERE supply_category = ? AND first_synced_at >= ${NEW_WINDOW_SQL}`,
+	)
+		.bind(category)
+		.first();
 
 	return new Response(JSON.stringify({ notices, new_count: newCountRow?.c ?? 0 }), {
 		headers: { "content-type": "application/json" },

@@ -16,8 +16,9 @@
 	--color-error: #dc2626;
 	--color-success: #16a34a;
 }
+/* 시스템이 다크모드일 때 자동 적용 - 단, 사용자가 라이트를 수동으로 골랐으면(data-theme="light") 안 켜짐. */
 @media (prefers-color-scheme: dark) {
-	:root {
+	:root:not([data-theme="light"]) {
 		--color-primary: #3f3f46;
 		--color-primary-dark: #52525b;
 		--color-link: #d4d4d8;
@@ -30,6 +31,20 @@
 		--color-error: #f87171;
 		--color-success: #4ade80;
 	}
+}
+/* 사용자가 다크를 수동으로 골랐으면(data-theme="dark") 시스템 설정과 무관하게 항상 적용. */
+:root[data-theme="dark"] {
+	--color-primary: #3f3f46;
+	--color-primary-dark: #52525b;
+	--color-link: #d4d4d8;
+	--color-text: #fafafa;
+	--color-text-secondary: #a1a1aa;
+	--color-border: #3f3f46;
+	--color-bg: #18181b;
+	--color-bg-secondary: #27272a;
+	--color-card-bg: #202023;
+	--color-error: #f87171;
+	--color-success: #4ade80;
 }
 * {
 	box-sizing: border-box;
@@ -83,14 +98,57 @@ body {
 	background: rgba(255, 255, 255, 0.15);
 }
 
+.page-head {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 0.5rem;
+	margin-top: 1.25rem;
+}
 h1 {
 	font-size: 1.2rem;
-	margin: 1.25rem 0 0.25rem;
+	margin: 0 0 0.25rem;
 }
 .subtitle {
 	color: var(--color-text-secondary);
 	font-size: 0.85rem;
 	margin: 0 0 1rem;
+}
+
+.theme-toggle {
+	display: flex;
+	align-items: center;
+	gap: 0.3rem;
+	font-size: 0.78rem;
+	color: var(--color-text-secondary);
+	white-space: nowrap;
+	flex-shrink: 0;
+	padding-top: 0.15rem;
+}
+
+.tabs {
+	display: flex;
+	gap: 0.4rem;
+	margin-bottom: 1rem;
+	border-bottom: 1px solid var(--color-border);
+}
+.tabs .tab {
+	padding: 0.5rem 0.2rem;
+	margin-bottom: -1px;
+	font-size: 0.85rem;
+	font-weight: 600;
+	border: none;
+	border-bottom: 2px solid transparent;
+	background: transparent;
+	color: var(--color-text-secondary);
+	cursor: pointer;
+}
+.tabs .tab + .tab {
+	margin-left: 0.9rem;
+}
+.tabs .tab.active {
+	color: var(--color-text);
+	border-bottom-color: var(--color-primary);
 }
 
 .search-bar {

@@ -8,8 +8,19 @@
 	</head>
 	<body>
 		<div class="container">
-			<h1>청약 공고 검색 <span id="new-count-badge"></span></h1>
+			<div class="page-head">
+				<h1>청약 공고 검색 <span id="new-count-badge"></span></h1>
+				<label class="theme-toggle">
+					<input type="checkbox" id="theme-switch" />
+					다크모드
+				</label>
+			</div>
 			<p class="subtitle">apt-subscription-advisor가 매일 아침 분석해서 보낸 공고입니다.</p>
+
+			<div class="tabs" id="tabs" role="tablist">
+				<button type="button" class="tab active" data-category="remainder" role="tab" aria-selected="true">무순위·임의공급</button>
+				<button type="button" class="tab" data-category="general" role="tab" aria-selected="false">일반분양(1·2순위·특공)</button>
+			</div>
 
 			<form class="search-bar" id="search-form">
 				<input type="text" id="q" name="q" placeholder="단지명/주소 검색" />
@@ -26,6 +37,41 @@
 		</div>
 
 		<script>
+			// --- 다크모드 수동 전환. localStorage는 프라이빗 브라우징 등에서 접근이 막힐 수
+			// 있어서 항상 try/catch로 감싼다 (실패해도 시스템 설정을 그대로 따르게 둔다). ---
+			function applyTheme(theme) {
+				if (theme === "dark" || theme === "light") {
+					document.documentElement.setAttribute("data-theme", theme);
+				} else {
+					document.documentElement.removeAttribute("data-theme");
+				}
+			}
+
+			function getStoredTheme() {
+				try {
+					return localStorage.getItem("theme");
+				} catch {
+					return null;
+				}
+			}
+
+			function initTheme() {
+				const stored = getStoredTheme();
+				applyTheme(stored);
+				const checkbox = document.getElementById("theme-switch");
+				const systemDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+				checkbox.checked = stored ? stored === "dark" : Boolean(systemDark);
+				checkbox.addEventListener("change", () => {
+					const theme = checkbox.checked ? "dark" : "light";
+					applyTheme(theme);
+					try {
+						localStorage.setItem("theme", theme);
+					} catch {
+						// 저장 실패해도 이번 방문 동안은 적용된 상태 그대로 유지됨
+					}
+				});
+			}
+
 			// notice 데이터는 청약홈/실거래가 API, Claude 웹서치 등 외부 소스를 거쳐 온다 - innerHTML에
 			// 넣기 전에 반드시 이스케이프하고, URL은 http(s)만 허용해서 XSS를 막는다.
 			function escapeHtml(value) {
@@ -130,6 +176,8 @@
 				</article>`;
 			}
 
+			let activeCategory = "remainder";
+
 			async function load() {
 				const container = document.getElementById("notices");
 				container.innerHTML = '<p class="state-message">불러오는 중...</p>';
@@ -137,6 +185,7 @@
 				const params = new URLSearchParams();
 				const q = document.getElementById("q").value.trim();
 				const onlyNew = document.getElementById("new-only").checked;
+				params.set("category", activeCategory);
 				if (q) params.set("q", q);
 				if (onlyNew) params.set("new", "1");
 
@@ -166,6 +215,21 @@
 			});
 			document.getElementById("new-only").addEventListener("change", load);
 
+			document.getElementById("tabs").addEventListener("click", (event) => {
+				const btn = event.target.closest(".tab");
+				if (!btn || btn.classList.contains("active")) return;
+
+				document.querySelectorAll("#tabs .tab").forEach((el) => {
+					el.classList.remove("active");
+					el.setAttribute("aria-selected", "false");
+				});
+				btn.classList.add("active");
+				btn.setAttribute("aria-selected", "true");
+				activeCategory = btn.dataset.category;
+				load();
+			});
+
+			initTheme();
 			load();
 		</script>
 	</body>
