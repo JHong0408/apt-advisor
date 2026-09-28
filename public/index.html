@@ -126,7 +126,6 @@
 						${period ? `<span class="badge">${escapeHtml(period)}</span>` : ""}
 					</div>
 					${renderTypesTable(n.types)}
-					${n.recommendation ? `<div class="recommendation">${escapeHtml(n.recommendation)}</div>` : ""}
 					${renderReferences(n.references)}
 					<div class="card-footer">
 						<span>확인일 ${escapeHtml(formatDate(n.first_synced_at ? n.first_synced_at.slice(0, 10) : ""))}</span>

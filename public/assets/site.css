@@ -170,16 +170,6 @@ h1 {
 	vertical-align: middle;
 }
 
-.recommendation {
-	background: var(--color-bg-secondary);
-	border-radius: 8px;
-	padding: 0.7rem 0.85rem;
-	font-size: 0.85rem;
-	line-height: 1.5;
-	white-space: pre-wrap;
-	margin-bottom: 0.6rem;
-}
-
 table.type-table {
 	width: 100%;
 	border-collapse: collapse;
