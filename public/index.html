@@ -13,10 +13,6 @@
 
 			<form class="search-bar" id="search-form">
 				<input type="text" id="q" name="q" placeholder="단지명/주소 검색" />
-				<select id="status" name="status">
-					<option value="open">접수중만</option>
-					<option value="all">마감 포함 전체</option>
-				</select>
 				<label class="new-only-toggle">
 					<input type="checkbox" id="new-only" />
 					신규만
@@ -140,10 +136,8 @@
 
 				const params = new URLSearchParams();
 				const q = document.getElementById("q").value.trim();
-				const status = document.getElementById("status").value;
 				const onlyNew = document.getElementById("new-only").checked;
 				if (q) params.set("q", q);
-				if (status) params.set("status", status);
 				if (onlyNew) params.set("new", "1");
 
 				try {

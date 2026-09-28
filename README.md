@@ -21,7 +21,7 @@ SQLite)에 저장합니다.
 [Cloudflare Worker: src/index.js]  ──▶  [D1: apt-advisor-db]
         │
         ▼ (로그인 세션 확인 후)
-[public/index.html]  ──  GET /api/notices?q=...&status=...&new=1  ──▶  D1에서 조회
+[public/index.html]  ──  GET /api/notices?q=...&new=1  ──▶  D1에서 조회
 ```
 
 - **알림 채널이 이 사이트 하나뿐입니다.** Slack은 쓰지 않습니다. 로그인해서 들어오면 "신규 N건"

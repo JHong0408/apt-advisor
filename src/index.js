@@ -44,6 +44,21 @@ async function handleLogout(request, env) {
 	});
 }
 
+// 접수 마감일이 지난 공고를 D1에서 완전히 삭제한다. GitHub Actions가 마감된 공고는
+// 애초에 다시 안 보내므로(main.py의 collect_candidate_notices), sync가 들어올 때마다
+// (하루 한 번) 한 번씩 청소하면 충분하다 - 별도 cron 없이 이 호출에 얹어서 처리한다.
+async function deleteExpiredNotices(env) {
+	const today = new Date().toISOString().slice(0, 10);
+	await env.DB.prepare(
+		"DELETE FROM notice_types WHERE notice_id IN (SELECT notice_id FROM notices WHERE reception_end_date IS NOT NULL AND reception_end_date < ?)",
+	)
+		.bind(today)
+		.run();
+	await env.DB.prepare("DELETE FROM notices WHERE reception_end_date IS NOT NULL AND reception_end_date < ?")
+		.bind(today)
+		.run();
+}
+
 // apt-subscription-advisor의 GitHub Actions(src/site_sync.py)가 분석을 마친 공고 1건을
 // 밀어 넣는 엔드포인트. 로그인 세션이 아니라 고정 공유 토큰(SYNC_TOKEN)으로 인증한다 - 이
 // 호출은 사람이 브라우저로 하는 게 아니라 CI 러너가 서버 대 서버로 하는 것이기 때문.
@@ -77,6 +92,8 @@ async function handleSync(request, env) {
 	if (!noticeId || !Array.isArray(types) || types.length === 0) {
 		return jsonError("notice_id와 types가 필요합니다", 400);
 	}
+
+	await deleteExpiredNotices(env);
 
 	// first_synced_at은 여기서 명시적으로 갱신하지 않는다 - ON CONFLICT DO UPDATE의 SET
 	// 목록에 없으면 기존 행의 값이 그대로 유지된다(=최초 동기화 시각 보존, "신규" 배지의 기준).
@@ -144,18 +161,15 @@ async function handleSync(request, env) {
 const NEW_WINDOW_SQL = "datetime('now', '-2 days')";
 
 async function handleGetNotices(url, env) {
-	const statusFilter = url.searchParams.get("status") || "open";
 	const onlyNew = url.searchParams.get("new") === "1";
 	const q = url.searchParams.get("q")?.trim() || "";
 	const limit = Math.min(Number(url.searchParams.get("limit")) || 100, 300);
 
-	const conds = ["1=1"];
-	const binds = [];
+	// 마감된 공고는 deleteExpiredNotices()가 sync 때마다 D1에서 지우므로 원래 남아있으면
+	// 안 되지만, 혹시 아직 정리 전(청소 주기 사이)이라도 화면엔 노출되지 않도록 항상 걸러둔다.
+	const conds = ["(reception_end_date IS NULL OR reception_end_date >= ?)"];
+	const binds = [new Date().toISOString().slice(0, 10)];
 
-	if (statusFilter === "open") {
-		conds.push("(reception_end_date IS NULL OR reception_end_date >= ?)");
-		binds.push(new Date().toISOString().slice(0, 10));
-	}
 	if (onlyNew) {
 		conds.push(`first_synced_at >= ${NEW_WINDOW_SQL}`);
 	}
