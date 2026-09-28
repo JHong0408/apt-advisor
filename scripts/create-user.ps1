@@ -1,19 +1,18 @@
-# Node.js 없이 로그인 계정을 만드는 방법.
-# 이 스크립트는 D1에 직접 쓰지 않고, INSERT SQL문만 출력합니다.
-# 그 SQL을 Cloudflare 대시보드 > Workers & Pages > D1 > apt-advisor-db > Console 탭에
-# 붙여넣어서 실행하세요.
+# Create a login account without Node.js.
+# This script does not write to D1 directly - it only prints an INSERT SQL statement.
+# Paste that SQL into the Cloudflare dashboard: D1 > apt-advisor-db > Console tab.
 #
-# src/auth.js의 hashPassword()와 동일한 방식(PBKDF2-SHA256, 100000회 반복, salt 16바이트,
-# 결과 32바이트)으로 해시를 계산합니다.
+# Hashing matches src/auth.js's hashPassword() exactly: PBKDF2-SHA256, 100000
+# iterations, 16-byte salt, 32-byte output.
 
-$username = Read-Host "아이디"
-$securePassword = Read-Host "비밀번호" -AsSecureString
+$username = Read-Host "Username"
+$securePassword = Read-Host "Password" -AsSecureString
 $bstr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($securePassword)
 $password = [Runtime.InteropServices.Marshal]::PtrToStringAuto($bstr)
 [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($bstr)
 
 if ([string]::IsNullOrWhiteSpace($username) -or [string]::IsNullOrWhiteSpace($password)) {
-	Write-Error "아이디/비밀번호는 비워둘 수 없습니다."
+	Write-Error "Username/password cannot be empty."
 	exit 1
 }
 
@@ -31,5 +30,5 @@ $usernameEscaped = $username.Replace("'", "''")
 
 $sql = "INSERT INTO users (username, password_hash, salt) VALUES ('$usernameEscaped', '$hashHex', '$saltHex') ON CONFLICT(username) DO UPDATE SET password_hash = excluded.password_hash, salt = excluded.salt;"
 
-Write-Host "`n아래 SQL을 D1 Console(대시보드)에 붙여넣어 실행하세요:`n" -ForegroundColor Cyan
+Write-Host "`nPaste this SQL into the D1 Console (Cloudflare dashboard):`n" -ForegroundColor Cyan
 Write-Output $sql
