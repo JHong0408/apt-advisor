@@ -221,12 +221,12 @@ h1 {
 }
 .notice-card h2 {
 	font-size: 1.05rem;
-	margin: 0 0 0.15rem;
+	margin: 0 0 0.4rem;
 }
 .notice-head .address {
 	color: var(--color-text-secondary);
 	font-size: 0.85rem;
-	margin: 0 0 0.4rem;
+	margin: 0 0 0.6rem;
 }
 .notice-subline {
 	display: flex;
