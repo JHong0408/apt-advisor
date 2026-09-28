@@ -281,7 +281,16 @@ export default {
 		const user = await getSessionUser(request, env);
 
 		if (!user) {
-			if (pathname === "/login" || pathname.startsWith("/assets/")) return env.ASSETS.fetch(request);
+			// manifest.json/sw.js는 PWA 설치를 위해 로그인 여부와 무관하게 항상 열어둔다
+			// (민감정보 없음, 브라우저가 로그인 전에도 알아서 fetch해감 - home-main과 동일 패턴).
+			if (
+				pathname === "/login" ||
+				pathname === "/manifest.json" ||
+				pathname === "/sw.js" ||
+				pathname.startsWith("/assets/")
+			) {
+				return env.ASSETS.fetch(request);
+			}
 			if (pathname.startsWith("/api/")) return jsonError("Unauthorized", 401);
 			return Response.redirect(new URL("/login", url).toString(), 302);
 		}

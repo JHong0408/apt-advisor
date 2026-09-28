@@ -5,6 +5,13 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>로그인 - 청약 알리미</title>
 		<link rel="stylesheet" href="/assets/site.css" />
+		<link rel="manifest" href="/manifest.json" />
+		<link rel="icon" href="/assets/icon.svg" type="image/svg+xml" />
+		<link rel="apple-touch-icon" href="/assets/icon.svg" />
+		<meta name="theme-color" content="#18181b" />
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+		<meta name="apple-mobile-web-app-title" content="청약 알리미" />
 		<style>
 			body {
 				display: flex;
@@ -15,6 +22,7 @@
 		</style>
 	</head>
 	<body>
+		<script>if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js");</script>
 		<form class="login-card" id="login-form">
 			<h1>청약 알리미 로그인</h1>
 			<label>
