@@ -225,7 +225,7 @@ h1 {
 }
 .notice-head .address {
 	color: var(--color-text-secondary);
-	font-size: 0.85rem;
+	font-size: 0.75rem;
 	margin: 0 0 0.4rem;
 }
 .notice-subline {
