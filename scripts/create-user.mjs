@@ -67,19 +67,19 @@ function askHidden(question) {
 	});
 }
 
-const email = await ask("이메일: ");
+const username = await ask("아이디: ");
 const password = await askHidden("비밀번호: ");
 
-if (!email || !password) {
-	console.error("이메일/비밀번호는 비워둘 수 없습니다.");
+if (!username || !password) {
+	console.error("아이디/비밀번호는 비워둘 수 없습니다.");
 	process.exit(1);
 }
 
 const { hash, salt } = await hashPassword(password);
-const escapedEmail = email.replace(/'/g, "''");
+const escapedUsername = username.replace(/'/g, "''");
 
-const sql = `INSERT INTO users (email, password_hash, salt) VALUES ('${escapedEmail}', '${hash}', '${salt}')
-ON CONFLICT(email) DO UPDATE SET password_hash = excluded.password_hash, salt = excluded.salt;`;
+const sql = `INSERT INTO users (username, password_hash, salt) VALUES ('${escapedUsername}', '${hash}', '${salt}')
+ON CONFLICT(username) DO UPDATE SET password_hash = excluded.password_hash, salt = excluded.salt;`;
 
 const tmpFile = `.tmp-create-user-${Date.now()}.sql`;
 writeFileSync(tmpFile, sql, "utf8");
@@ -89,7 +89,7 @@ try {
 		stdio: "inherit",
 		shell: true,
 	});
-	console.log(`\n완료: ${email} 계정이 생성/갱신되었습니다.`);
+	console.log(`\n완료: ${username} 계정이 생성/갱신되었습니다.`);
 } finally {
 	unlinkSync(tmpFile);
 }

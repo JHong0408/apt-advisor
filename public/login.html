@@ -18,8 +18,8 @@
 		<form class="login-card" id="login-form">
 			<h1>청약 알리미 로그인</h1>
 			<label>
-				이메일
-				<input type="text" name="email" required autocomplete="username" />
+				아이디
+				<input type="text" name="username" required autocomplete="username" />
 			</label>
 			<label>
 				비밀번호
@@ -41,7 +41,7 @@
 				const res = await fetch("/api/login", {
 					method: "POST",
 					headers: { "content-type": "application/json" },
-					body: JSON.stringify({ email: data.get("email"), password: data.get("password") }),
+					body: JSON.stringify({ username: data.get("username"), password: data.get("password") }),
 				});
 
 				if (res.ok) {

@@ -47,7 +47,7 @@ export async function getSessionUser(request, env) {
 	if (!sessionId) return null;
 
 	const row = await env.DB.prepare(
-		"SELECT users.id, users.email FROM sessions JOIN users ON users.id = sessions.user_id WHERE sessions.id = ? AND sessions.expires_at > ?",
+		"SELECT users.id, users.username FROM sessions JOIN users ON users.id = sessions.user_id WHERE sessions.id = ? AND sessions.expires_at > ?",
 	)
 		.bind(sessionId, new Date().toISOString())
 		.first();

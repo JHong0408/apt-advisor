@@ -1,7 +1,7 @@
 -- 인증 (home-main과 동일한 PBKDF2 + 세션 쿠키 패턴)
 CREATE TABLE IF NOT EXISTS users (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
-	email TEXT NOT NULL UNIQUE,
+	username TEXT NOT NULL UNIQUE,
 	password_hash TEXT NOT NULL,
 	salt TEXT NOT NULL,
 	created_at TEXT NOT NULL DEFAULT (datetime('now'))

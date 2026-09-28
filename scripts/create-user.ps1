@@ -6,14 +6,14 @@
 # src/auth.js의 hashPassword()와 동일한 방식(PBKDF2-SHA256, 100000회 반복, salt 16바이트,
 # 결과 32바이트)으로 해시를 계산합니다.
 
-$email = Read-Host "이메일"
+$username = Read-Host "아이디"
 $securePassword = Read-Host "비밀번호" -AsSecureString
 $bstr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($securePassword)
 $password = [Runtime.InteropServices.Marshal]::PtrToStringAuto($bstr)
 [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($bstr)
 
-if ([string]::IsNullOrWhiteSpace($email) -or [string]::IsNullOrWhiteSpace($password)) {
-	Write-Error "이메일/비밀번호는 비워둘 수 없습니다."
+if ([string]::IsNullOrWhiteSpace($username) -or [string]::IsNullOrWhiteSpace($password)) {
+	Write-Error "아이디/비밀번호는 비워둘 수 없습니다."
 	exit 1
 }
 
@@ -27,9 +27,9 @@ $hash = $pbkdf2.GetBytes(32)
 
 $hashHex = -join ($hash | ForEach-Object { $_.ToString("x2") })
 $saltHex = -join ($salt | ForEach-Object { $_.ToString("x2") })
-$emailEscaped = $email.Replace("'", "''")
+$usernameEscaped = $username.Replace("'", "''")
 
-$sql = "INSERT INTO users (email, password_hash, salt) VALUES ('$emailEscaped', '$hashHex', '$saltHex') ON CONFLICT(email) DO UPDATE SET password_hash = excluded.password_hash, salt = excluded.salt;"
+$sql = "INSERT INTO users (username, password_hash, salt) VALUES ('$usernameEscaped', '$hashHex', '$saltHex') ON CONFLICT(username) DO UPDATE SET password_hash = excluded.password_hash, salt = excluded.salt;"
 
 Write-Host "`n아래 SQL을 D1 Console(대시보드)에 붙여넣어 실행하세요:`n" -ForegroundColor Cyan
 Write-Output $sql

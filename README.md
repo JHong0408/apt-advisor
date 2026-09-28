@@ -29,7 +29,7 @@ SQLite)에 저장합니다.
 - **"신규" 판단**: `notices.first_synced_at`은 그 공고가 처음 동기화된 시각으로, 이후 갱신
   (같은 공고가 다시 sync되어도)되지 않습니다. 최근 2일 이내면 "신규" 배지가 붙습니다
   (`src/index.js`의 `NEW_WINDOW_SQL`).
-- **인증**: 이메일/비밀번호 로그인 + 세션 쿠키(`src/auth.js`, home-main과 동일한 PBKDF2 방식).
+- **인증**: 아이디/비밀번호 로그인 + 세션 쿠키(`src/auth.js`, home-main과 동일한 PBKDF2 방식).
   회원가입 화면은 없고, `scripts/create-user.mjs`(Node 필요) 또는 `scripts/create-user.ps1`
   (Node 불필요, 아래 "방법 B" 참고)로 본인 계정만 직접 만듭니다.
 

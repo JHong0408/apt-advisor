@@ -22,13 +22,13 @@ async function handleLogin(request, env) {
 		return jsonError("잘못된 요청입니다", 400);
 	}
 
-	const email = body.email?.trim();
+	const username = body.username?.trim();
 	const password = body.password;
-	if (!email || !password) return jsonError("이메일/비밀번호를 입력하세요", 400);
+	if (!username || !password) return jsonError("아이디/비밀번호를 입력하세요", 400);
 
-	const user = await env.DB.prepare("SELECT id, password_hash, salt FROM users WHERE email = ?").bind(email).first();
+	const user = await env.DB.prepare("SELECT id, password_hash, salt FROM users WHERE username = ?").bind(username).first();
 	if (!user || !(await verifyPassword(password, user.salt, user.password_hash))) {
-		return jsonError("이메일 또는 비밀번호가 올바르지 않습니다", 401);
+		return jsonError("아이디 또는 비밀번호가 올바르지 않습니다", 401);
 	}
 
 	const sessionId = await createSession(env, user.id);
@@ -211,7 +211,7 @@ function buildSharedHeader(user) {
 	return `<header class="site-header">
 	<a class="brand" href="/">청약 알리미</a>
 	<nav>
-		<span class="user-email">${user.email}</span>
+		<span class="user-email">${user.username}</span>
 		<button id="logout-btn" type="button">로그아웃</button>
 	</nav>
 </header>
