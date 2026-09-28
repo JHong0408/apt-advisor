@@ -221,17 +221,18 @@ h1 {
 }
 .notice-card h2 {
 	font-size: 1.05rem;
-	margin: 0 0 0.3rem;
+	margin: 0 0 0.15rem;
+}
+.notice-head .address {
+	color: var(--color-text-secondary);
+	font-size: 0.85rem;
+	margin: 0 0 0.4rem;
 }
 .notice-subline {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
 	gap: 0.4rem;
-}
-.notice-subline .address {
-	color: var(--color-text-secondary);
-	font-size: 0.85rem;
 }
 .badge {
 	display: inline-block;
