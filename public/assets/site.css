@@ -14,9 +14,11 @@
 	--color-bg-secondary: #f4f4f5;
 	--color-card-bg: transparent;
 	--color-error: #dc2626;
-	/* --color-success: 안전마진이 좋음(분양가가 시세보다 저렴함)을 나타내는 색 - 초록 대신
-	   파란색을 쓴다 (이름은 그대로 두되 의미만 재사용, 이 변수의 유일한 소비처가 .margin-positive). */
-	--color-success: #2563eb;
+	/* --color-margin-good/-bad: 국내 주식 시세 관례(상승=빨강, 하락=파랑)에 맞춰 안전마진이
+	   좋으면(분양가가 시세보다 저렴함) 빨강, 안좋으면 파랑을 쓴다 - 서구권 관례(상승=초록)와는
+	   반대라서 --color-error/success 재사용 대신 의미가 분명한 전용 변수를 둔다. */
+	--color-margin-good: #dc2626;
+	--color-margin-bad: #2563eb;
 	/* --color-header-bg/-border: 라이트모드는 배경(흰색)과 대비가 크니 헤더가 페이지와
 	   같은 색이어도 구분되지만, 다크모드는 페이지 배경 자체가 거의 검정이라 헤더도 똑같이
 	   검정이면 경계가 안 보인다 - 그래서 다크모드에서만 얇은 테두리로 구분한다. */
@@ -36,7 +38,8 @@
 		--color-bg-secondary: #27272a;
 		--color-card-bg: #202023;
 		--color-error: #f87171;
-		--color-success: #60a5fa;
+		--color-margin-good: #f87171;
+		--color-margin-bad: #60a5fa;
 		--color-header-bg: #18181b;
 		--color-header-border: rgba(255, 255, 255, 0.18);
 	}
@@ -53,7 +56,8 @@
 	--color-bg-secondary: #27272a;
 	--color-card-bg: #202023;
 	--color-error: #f87171;
-	--color-success: #60a5fa;
+	--color-margin-good: #f87171;
+	--color-margin-bad: #60a5fa;
 	--color-header-bg: #18181b;
 	--color-header-border: rgba(255, 255, 255, 0.18);
 }
@@ -276,10 +280,10 @@ table.type-table td:first-child {
 	text-align: left;
 }
 .margin-positive {
-	color: var(--color-success);
+	color: var(--color-margin-good);
 }
 .margin-negative {
-	color: var(--color-error);
+	color: var(--color-margin-bad);
 }
 
 .references {
