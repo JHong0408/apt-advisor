@@ -31,14 +31,14 @@
 		--color-link: #d4d4d8;
 		--color-text: #fafafa;
 		--color-text-secondary: #a1a1aa;
-		--color-border: #3f3f46;
+		--color-border: rgba(255, 255, 255, 0.18);
 		--color-bg: #18181b;
 		--color-bg-secondary: #27272a;
 		--color-card-bg: #202023;
 		--color-error: #f87171;
 		--color-success: #60a5fa;
 		--color-header-bg: #18181b;
-		--color-header-border: #3f3f46;
+		--color-header-border: rgba(255, 255, 255, 0.18);
 	}
 }
 /* 사용자가 다크를 수동으로 골랐으면(data-theme="dark") 시스템 설정과 무관하게 항상 적용. */
@@ -48,14 +48,14 @@
 	--color-link: #d4d4d8;
 	--color-text: #fafafa;
 	--color-text-secondary: #a1a1aa;
-	--color-border: #3f3f46;
+	--color-border: rgba(255, 255, 255, 0.18);
 	--color-bg: #18181b;
 	--color-bg-secondary: #27272a;
 	--color-card-bg: #202023;
 	--color-error: #f87171;
 	--color-success: #60a5fa;
 	--color-header-bg: #18181b;
-	--color-header-border: #3f3f46;
+	--color-header-border: rgba(255, 255, 255, 0.18);
 }
 * {
 	box-sizing: border-box;
