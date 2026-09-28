@@ -14,7 +14,14 @@
 	--color-bg-secondary: #f4f4f5;
 	--color-card-bg: transparent;
 	--color-error: #dc2626;
-	--color-success: #16a34a;
+	/* --color-success: 안전마진이 좋음(분양가가 시세보다 저렴함)을 나타내는 색 - 초록 대신
+	   파란색을 쓴다 (이름은 그대로 두되 의미만 재사용, 이 변수의 유일한 소비처가 .margin-positive). */
+	--color-success: #2563eb;
+	/* --color-header-bg/-border: 라이트모드는 배경(흰색)과 대비가 크니 헤더가 페이지와
+	   같은 색이어도 구분되지만, 다크모드는 페이지 배경 자체가 거의 검정이라 헤더도 똑같이
+	   검정이면 경계가 안 보인다 - 그래서 다크모드에서만 얇은 테두리로 구분한다. */
+	--color-header-bg: #18181b;
+	--color-header-border: transparent;
 }
 /* 시스템이 다크모드일 때 자동 적용 - 단, 사용자가 라이트를 수동으로 골랐으면(data-theme="light") 안 켜짐. */
 @media (prefers-color-scheme: dark) {
@@ -29,7 +36,9 @@
 		--color-bg-secondary: #27272a;
 		--color-card-bg: #202023;
 		--color-error: #f87171;
-		--color-success: #4ade80;
+		--color-success: #60a5fa;
+		--color-header-bg: #18181b;
+		--color-header-border: #3f3f46;
 	}
 }
 /* 사용자가 다크를 수동으로 골랐으면(data-theme="dark") 시스템 설정과 무관하게 항상 적용. */
@@ -44,7 +53,9 @@
 	--color-bg-secondary: #27272a;
 	--color-card-bg: #202023;
 	--color-error: #f87171;
-	--color-success: #4ade80;
+	--color-success: #60a5fa;
+	--color-header-bg: #18181b;
+	--color-header-border: #3f3f46;
 }
 * {
 	box-sizing: border-box;
@@ -67,7 +78,8 @@ body {
 	justify-content: space-between;
 	gap: 0.5rem;
 	padding: 0.85rem 1rem;
-	background: var(--color-primary);
+	background: var(--color-header-bg);
+	border-bottom: 1px solid var(--color-header-border);
 }
 .site-header .brand {
 	font-weight: 700;
