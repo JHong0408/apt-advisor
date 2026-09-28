@@ -157,7 +157,8 @@
 						return `<a href="${escapeHtml(url)}" target="_blank" rel="noopener">${escapeHtml(r.source ?? "참고")}: ${escapeHtml(r.title ?? r.url)}</a>`;
 					})
 					.join("");
-				return `<div class="references">${links}</div>`;
+				if (!links) return "";
+				return `<div class="references"><span class="references-label">관련 URL</span><div class="references-links">${links}</div></div>`;
 			}
 
 			function renderNotice(n) {

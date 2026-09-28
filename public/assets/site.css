@@ -7,6 +7,9 @@
 	/* --color-link: 텍스트 링크 전용 - 다크모드에서는 어두운 배경 위에 떠야 하므로
 	   --color-primary와 달리 밝은 색으로 반전시킨다. */
 	--color-link: #18181b;
+	/* --color-hyperlink: 실제 외부 링크(참고자료, 청약홈 공고)에 쓰는 전통적인 파란 밑줄
+	   링크 색 - --color-link은 배지 텍스트에도 재사용되고 있어 실제 하이퍼링크와 분리한다. */
+	--color-hyperlink: #2563eb;
 	--color-text: #18181b;
 	--color-text-secondary: #71717a;
 	--color-border: #e4e4e7;
@@ -31,6 +34,7 @@
 		--color-primary: #3f3f46;
 		--color-primary-dark: #52525b;
 		--color-link: #d4d4d8;
+		--color-hyperlink: #60a5fa;
 		--color-text: #fafafa;
 		--color-text-secondary: #a1a1aa;
 		--color-border: rgba(255, 255, 255, 0.18);
@@ -49,6 +53,7 @@
 	--color-primary: #3f3f46;
 	--color-primary-dark: #52525b;
 	--color-link: #d4d4d8;
+	--color-hyperlink: #60a5fa;
 	--color-text: #fafafa;
 	--color-text-secondary: #a1a1aa;
 	--color-border: rgba(255, 255, 255, 0.18);
@@ -288,16 +293,23 @@ table.type-table td:first-child {
 
 .references {
 	display: flex;
-	flex-wrap: wrap;
-	gap: 0.5rem;
+	flex-direction: column;
+	gap: 0.3rem;
 	font-size: 0.8rem;
 	margin-bottom: 0.4rem;
 }
-.references a {
-	color: var(--color-link);
-	text-decoration: none;
+.references-label {
+	font-size: 0.75rem;
+	font-weight: 600;
+	color: var(--color-text-secondary);
 }
-.references a:hover {
+.references-links {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+}
+.references a {
+	color: var(--color-hyperlink);
 	text-decoration: underline;
 }
 
@@ -310,8 +322,8 @@ table.type-table td:first-child {
 	color: var(--color-text-secondary);
 }
 .card-footer a {
-	color: var(--color-link);
-	text-decoration: none;
+	color: var(--color-hyperlink);
+	text-decoration: underline;
 }
 
 .login-card {
