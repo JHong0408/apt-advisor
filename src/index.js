@@ -98,10 +98,21 @@ async function handleSync(request, env) {
 	// first_synced_at은 여기서 명시적으로 갱신하지 않는다 - ON CONFLICT DO UPDATE의 SET
 	// 목록에 없으면 기존 행의 값이 그대로 유지된다(=최초 동기화 시각 보존, "신규" 배지의 기준).
 	//
-	// references는 site_sync.py가 이미 Claude 처리를 마친 공고를 재동기화할 때 일부러
-	// null로 보낸다(비용 절감을 위해 재호출을 건너뛰었다는 뜻) - 그 경우 COALESCE로 기존
-	// 값을 그대로 유지하고, null로 덮어써서 지우지 않는다.
-	const referencesJson = references != null ? JSON.stringify(references) : null;
+	// references는 site_sync.py가 도메인(mhb-blog/homedubu)별로 성공한 것만 보낸다 - 한쪽이
+	// 타임아웃 등으로 실패해도 다른 쪽 결과는 그대로 온다. 그래서 여기서는 덮어쓰지 않고
+	// 기존에 저장된 참고자료와 URL 기준으로 병합(merge)한다 - 안 그러면 예전에 성공했던
+	// 도메인의 참고자료가 이번 응답에 없다는 이유로 사라져버린다.
+	const existingRow = await env.DB.prepare("SELECT references_json FROM notices WHERE notice_id = ?")
+		.bind(noticeId)
+		.first();
+	const existingRefs = existingRow?.references_json ? JSON.parse(existingRow.references_json) : [];
+	const incomingRefs = Array.isArray(references) ? references : [];
+	const mergedByUrl = new Map();
+	for (const ref of [...existingRefs, ...incomingRefs]) {
+		if (ref?.url) mergedByUrl.set(ref.url, ref);
+	}
+	const referencesJson = JSON.stringify([...mergedByUrl.values()]);
+
 	await env.DB.prepare(
 		`INSERT INTO notices (notice_id, house_name, address, region, supply_type, reception_start_date, reception_end_date, notice_url, references_json, first_synced_at, synced_at)
 		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
@@ -113,7 +124,7 @@ async function handleSync(request, env) {
 			reception_start_date = excluded.reception_start_date,
 			reception_end_date = excluded.reception_end_date,
 			notice_url = excluded.notice_url,
-			references_json = COALESCE(excluded.references_json, notices.references_json),
+			references_json = excluded.references_json,
 			synced_at = datetime('now')`,
 	)
 		.bind(
