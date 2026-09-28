@@ -214,20 +214,24 @@ h1 {
 	padding: 1rem 1.1rem;
 	margin-bottom: 1rem;
 }
+.notice-head {
+	padding-bottom: 0.7rem;
+	margin-bottom: 0.7rem;
+	border-bottom: 1px solid var(--color-border);
+}
 .notice-card h2 {
 	font-size: 1.05rem;
-	margin: 0 0 0.15rem;
+	margin: 0 0 0.3rem;
 }
-.notice-card .address {
-	color: var(--color-text-secondary);
-	font-size: 0.85rem;
-	margin: 0 0 0.5rem;
-}
-.notice-meta {
+.notice-subline {
 	display: flex;
 	flex-wrap: wrap;
+	align-items: center;
 	gap: 0.4rem;
-	margin-bottom: 0.7rem;
+}
+.notice-subline .address {
+	color: var(--color-text-secondary);
+	font-size: 0.85rem;
 }
 .badge {
 	display: inline-block;

@@ -169,12 +169,14 @@
 				const noticeUrl = safeUrl(n.notice_url);
 
 				return `<article class="notice-card">
-					<h2>${n.is_new ? '<span class="badge new">신규</span> ' : ""}${escapeHtml(n.house_name ?? "이름 미상")}</h2>
-					<p class="address">${escapeHtml(n.address ?? "")}</p>
-					<div class="notice-meta">
-						${n.region ? `<span class="badge region">${escapeHtml(n.region)}</span>` : ""}
-						${n.supply_type ? `<span class="badge">${escapeHtml(n.supply_type)}</span>` : ""}
-						${period ? `<span class="badge">${escapeHtml(period)}</span>` : ""}
+					<div class="notice-head">
+						<h2>${n.is_new ? '<span class="badge new">신규</span> ' : ""}${escapeHtml(n.house_name ?? "이름 미상")}</h2>
+						<div class="notice-subline">
+							${n.address ? `<span class="address">${escapeHtml(n.address)}</span>` : ""}
+							${n.region ? `<span class="badge region">${escapeHtml(n.region)}</span>` : ""}
+							${n.supply_type ? `<span class="badge">${escapeHtml(n.supply_type)}</span>` : ""}
+							${period ? `<span class="badge">${escapeHtml(period)}</span>` : ""}
+						</div>
 					</div>
 					${renderTypesTable(n.types)}
 					${renderReferences(n.references)}
