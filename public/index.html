@@ -11,13 +11,15 @@
 			<h1>청약 공고 검색 <span id="new-count-badge"></span></h1>
 			<p class="subtitle">apt-subscription-advisor가 매일 아침 분석해서 보낸 공고입니다.</p>
 
-			<form class="search-bar" id="search-form">
-				<input type="text" id="q" name="q" placeholder="단지명/주소 검색" />
+			<form id="search-form">
+				<div class="search-bar">
+					<input type="text" id="q" name="q" placeholder="단지명/주소 검색" />
+					<button type="submit">검색</button>
+				</div>
 				<label class="new-only-toggle">
 					<input type="checkbox" id="new-only" />
-					신규만
+					신규만 보기
 				</label>
-				<button type="submit">검색</button>
 			</form>
 
 			<div id="notices">
@@ -66,32 +68,34 @@
 
 			// margin/loan은 apt-subscription-advisor의 analyzer.py가 만든 JSON을 그대로 저장한
 			// 값이라 snake_case 필드명을 쓴다 (JS 쪽 camelCase가 아님에 주의).
-			function renderTypesTable(types) {
+			//
+			// 표 대신 주택형별로 카드를 쌓는 방식 - 좁은 폰 화면에서 5칼럼 표가 너무
+			// 빡빡해지는 문제를 피하고, 안전마진/필요현금을 큰 숫자로 강조해서 한눈에
+			// 들어오게 한다.
+			function renderTypeBlocks(types) {
 				if (!types || types.length === 0) return "";
-				const rows = types
+				return types
 					.map((t) => {
 						const margin = t.margin;
 						const loan = t.loan;
-						const marginCell =
-							margin && margin.margin_vs_avg !== null && margin.margin_vs_avg !== undefined
-								? `<span class="${margin.margin_vs_avg >= 0 ? "margin-positive" : "margin-negative"}">${formatWon(margin.margin_vs_avg)}</span>`
-								: "-";
-						return `<tr>
-							<td>${escapeHtml(t.house_ty ?? "-")}</td>
-							<td>${t.area_sqm ? escapeHtml(t.area_sqm) + "㎡" : "-"}</td>
-							<td>${formatManwon(t.price_manwon)}</td>
-							<td>${marginCell}</td>
-							<td>${loan ? formatWon(loan.estimated_required_cash) : "-"}</td>
-						</tr>`;
+						const marginKnown = margin && margin.margin_vs_avg !== null && margin.margin_vs_avg !== undefined;
+						const marginClass = marginKnown ? (margin.margin_vs_avg >= 0 ? "pos" : "neg") : "neutral";
+						const marginText = marginKnown ? formatWon(margin.margin_vs_avg) : "-";
+						const cashText = loan ? formatWon(loan.estimated_required_cash) : "-";
+
+						return `<div class="type-block">
+							<div class="type-head">
+								<span class="ty">${escapeHtml(t.house_ty ?? "-")}</span>
+								<span>${t.area_sqm ? escapeHtml(t.area_sqm) + "㎡" : "-"}</span>
+							</div>
+							<div class="stat-row">
+								<div><div class="stat-label">안전마진</div><div class="stat-value ${marginClass}">${marginText}</div></div>
+								<div><div class="stat-label">필요현금</div><div class="stat-value neutral">${cashText}</div></div>
+							</div>
+							<div class="price-line">분양가 ${formatManwon(t.price_manwon)}</div>
+						</div>`;
 					})
 					.join("");
-
-				return `<table class="type-table">
-					<thead>
-						<tr><th>주택형</th><th>면적</th><th>분양가</th><th>안전마진</th><th>필요현금</th></tr>
-					</thead>
-					<tbody>${rows}</tbody>
-				</table>`;
 			}
 
 			function renderReferences(refs) {
@@ -114,14 +118,17 @@
 				const noticeUrl = safeUrl(n.notice_url);
 
 				return `<article class="notice-card">
-					<h2>${n.is_new ? '<span class="badge new">신규</span> ' : ""}${escapeHtml(n.house_name ?? "이름 미상")}</h2>
+					<div class="card-top">
+						<h2>${escapeHtml(n.house_name ?? "이름 미상")}</h2>
+						${n.is_new ? '<span class="badge new">신규</span>' : ""}
+					</div>
 					<p class="address">${escapeHtml(n.address ?? "")}</p>
 					<div class="notice-meta">
 						${n.region ? `<span class="badge region">${escapeHtml(n.region)}</span>` : ""}
 						${n.supply_type ? `<span class="badge">${escapeHtml(n.supply_type)}</span>` : ""}
-						${period ? `<span class="badge">${escapeHtml(period)}</span>` : ""}
+						${period ? `<span class="badge period">${escapeHtml(period)} 접수</span>` : ""}
 					</div>
-					${renderTypesTable(n.types)}
+					${renderTypeBlocks(n.types)}
 					${renderReferences(n.references)}
 					<div class="card-footer">
 						<span>확인일 ${escapeHtml(formatDate(n.first_synced_at ? n.first_synced_at.slice(0, 10) : ""))}</span>
@@ -148,6 +155,7 @@
 
 					const badge = document.getElementById("new-count-badge");
 					badge.textContent = body.new_count > 0 ? `신규 ${body.new_count}건` : "";
+					badge.style.display = body.new_count > 0 ? "" : "none";
 
 					if (notices.length === 0) {
 						container.innerHTML = '<p class="state-message">조건에 맞는 공고가 없습니다.</p>';
