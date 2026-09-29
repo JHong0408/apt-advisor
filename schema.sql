@@ -31,6 +31,8 @@ CREATE TABLE IF NOT EXISTS notices (
 	notice_url TEXT,
 	recommendation TEXT, -- 더 이상 안 씀 (AI 추천 문구 기능 제거됨, 컬럼만 남겨둠 - 항상 NULL)
 	references_json TEXT,
+	commute_minutes INTEGER, -- 회사->공고지 대중교통 추천 경로 총 소요시간(분), TMAP API
+	commute_distance_m INTEGER, -- 같은 경로의 총 이동거리(m)
 	first_synced_at TEXT NOT NULL DEFAULT (datetime('now')),
 	synced_at TEXT NOT NULL DEFAULT (datetime('now'))
 );

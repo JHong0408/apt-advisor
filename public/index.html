@@ -167,6 +167,10 @@
 						? `${formatDate(n.reception_start_date)} ~ ${formatDate(n.reception_end_date)}`
 						: "";
 				const noticeUrl = safeUrl(n.notice_url);
+				const commuteText =
+					n.commute_minutes !== null && n.commute_minutes !== undefined
+						? `회사까지 ${n.commute_minutes}분${n.commute_distance_m ? ` (${(n.commute_distance_m / 1000).toFixed(1)}km)` : ""}`
+						: "";
 
 				return `<article class="notice-card">
 					<div class="notice-head">
@@ -176,6 +180,7 @@
 							${n.region ? `<span class="badge region">${escapeHtml(n.region)}</span>` : ""}
 							${n.supply_type ? `<span class="badge">${escapeHtml(n.supply_type)}</span>` : ""}
 							${period ? `<span class="badge">${escapeHtml(period)}</span>` : ""}
+							${commuteText ? `<span class="badge">${escapeHtml(commuteText)}</span>` : ""}
 						</div>
 					</div>
 					${renderTypesTable(n.types)}

@@ -87,6 +87,8 @@ async function handleSync(request, env) {
 		reception_end_date: receptionEndDate,
 		notice_url: noticeUrl,
 		references,
+		commute_minutes: commuteMinutes,
+		commute_distance_m: commuteDistanceM,
 		types,
 	} = body;
 
@@ -115,8 +117,8 @@ async function handleSync(request, env) {
 	const referencesJson = JSON.stringify([...mergedByUrl.values()]);
 
 	await env.DB.prepare(
-		`INSERT INTO notices (notice_id, house_name, address, region, supply_type, supply_category, reception_start_date, reception_end_date, notice_url, references_json, first_synced_at, synced_at)
-		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+		`INSERT INTO notices (notice_id, house_name, address, region, supply_type, supply_category, reception_start_date, reception_end_date, notice_url, references_json, commute_minutes, commute_distance_m, first_synced_at, synced_at)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
 		 ON CONFLICT(notice_id) DO UPDATE SET
 			house_name = excluded.house_name,
 			address = excluded.address,
@@ -127,6 +129,10 @@ async function handleSync(request, env) {
 			reception_end_date = excluded.reception_end_date,
 			notice_url = excluded.notice_url,
 			references_json = excluded.references_json,
+			-- TMAP 조회가 이번엔 실패해서 null로 왔으면(회로차단기 등) 기존 값을 그대로
+			-- 유지한다 - references와 같은 이유(일시적 실패로 이미 있던 값을 지우지 않음).
+			commute_minutes = COALESCE(excluded.commute_minutes, notices.commute_minutes),
+			commute_distance_m = COALESCE(excluded.commute_distance_m, notices.commute_distance_m),
 			synced_at = datetime('now')`,
 	)
 		.bind(
@@ -140,6 +146,8 @@ async function handleSync(request, env) {
 			receptionEndDate ?? null,
 			noticeUrl ?? null,
 			referencesJson,
+			commuteMinutes ?? null,
+			commuteDistanceM ?? null,
 		)
 		.run();
 
@@ -219,6 +227,8 @@ async function handleGetNotices(url, env) {
 			reception_end_date: row.reception_end_date,
 			notice_url: row.notice_url,
 			references: row.references_json ? JSON.parse(row.references_json) : [],
+			commute_minutes: row.commute_minutes,
+			commute_distance_m: row.commute_distance_m,
 			first_synced_at: row.first_synced_at,
 			is_new: Boolean(row.is_new),
 			types: (types.results ?? []).map((t) => ({
